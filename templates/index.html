@@ -1,0 +1,112 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTG Probability Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        label { display: block; }
+        input[type="number"] { width: 100%; padding: 5px; }
+        button { grid-column: span 2; padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        #result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Magic: The Gathering Probability Calculator</h1>
+    <form id="deckForm">
+        <div>
+            <label for="lands">Lands:</label>
+            <input type="number" id="lands" name="lands" value="24" required>
+        </div>
+        <div>
+            <label for="creatures">Creatures:</label>
+            <input type="number" id="creatures" name="creatures" value="4" required>
+        </div>
+        <div>
+            <label for="artifacts">Artifacts:</label>
+            <input type="number" id="artifacts" name="artifacts" value="4" required>
+        </div>
+        <div>
+            <label for="artifact_creatures">Artifact Creatures:</label>
+            <input type="number" id="artifact_creatures" name="artifact_creatures" value="4" required>
+        </div>
+        <div>
+            <label for="instants">Instants:</label>
+            <input type="number" id="instants" name="instants" value="8" required>
+        </div>
+        <div>
+            <label for="sorceries">Sorceries:</label>
+            <input type="number" id="sorceries" name="sorceries" value="8" required>
+        </div>
+        <div>
+            <label for="enchantments">Enchantments:</label>
+            <input type="number" id="enchantments" name="enchantments" value="4" required>
+        </div>
+        <div>
+            <label for="planeswalkers">Planeswalkers:</label>
+            <input type="number" id="planeswalkers" name="planeswalkers" value="4" required>
+        </div>
+        <button type="submit">Calculate Probabilities</button>
+    </form>
+    <div id="result">
+        <canvas id="probabilityChart"></canvas>
+    </div>
+    <script>
+        const form = document.getElementById('deckForm');
+        const ctx = document.getElementById('probabilityChart').getContext('2d');
+        let chart;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const response = await fetch('/calculate', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Probability of 4+ Different Card Types',
+                        data: values,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Probability'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Number of Cards Drawn'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
